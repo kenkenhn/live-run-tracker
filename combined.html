@@ -1,14 +1,81 @@
-<div class="container">
-  <div class="left">
-    <iframe src="https://www.strava.com/beacon/R08RWvF5F2U"></iframe>
-  </div>
-  <div class="right">
-    <h1>Run Stats</h1>
-    <div id="stats">
-      <p><strong>Distance:</strong> <span id="distance"></span></p>
-      <p><strong>Current pace:</strong> <span id="pace"></span></p>
-      <p><strong>ETA to 30 mi:</strong> <span id="eta"></span></p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Live Run Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; }
+    .container { display: flex; height: 100vh; }
+    .left, .right { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column;}
+    #stats p { font-size: 1.2em; margin: 10px; }
+    #map { height: 400px; width: 90%; margin: 10px; }
+    a.button {
+      display:inline-block; padding:20px 30px;
+      font-size:1.5em; background:orange;
+      color:white; text-decoration:none; border-radius:10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left">
+      <h2>Open Your Live Map</h2>
+      <a class="button" href="https://www.strava.com/beacon/R08RWvF5F2U" target="_blank">
+        Open Strava Beacon Live Map
+      </a>
     </div>
-    <div id="map"></div>
+    <div class="right">
+      <h1>Run Stats</h1>
+      <div id="stats">
+        <p><strong>Distance:</strong> <span id="distance"></span></p>
+        <p><strong>Current pace:</strong> <span id="pace"></span></p>
+        <p><strong>ETA to 30 mi:</strong> <span id="eta"></span></p>
+      </div>
+      <div id="map"></div>
+    </div>
   </div>
-</div>
+  <script>
+    const STRAVA_ACCESS_TOKEN = "bc53fc2ded88206cacfd3a9d7cc39992be0e20af";
+    const DISTANCE_GOAL = 30.0;
+
+    let map = L.map('map').setView([0,0], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    let marker = L.marker([0,0]).addTo(map);
+
+    async function fetchLatestActivity() {
+      try {
+        const res = await fetch("https://www.strava.com/api/v3/athlete/activities?per_page=1", {
+          headers: { "Authorization": "Bearer " + STRAVA_ACCESS_TOKEN }
+        });
+        const data = await res.json();
+        if (!data.length) return;
+
+        const activity = data[0];
+        const miles = activity.distance / 1609.34;
+        const pace = (activity.moving_time / 60) / miles; 
+        const remaining = DISTANCE_GOAL - miles;
+        const eta = remaining * pace;
+
+        document.getElementById("distance").textContent = miles.toFixed(2) + " mi";
+        document.getElementById("pace").textContent = pace.toFixed(2) + " min/mi";
+        document.getElementById("eta").textContent = eta > 0 ? eta.toFixed(1) + " min" : "Done!";
+
+        if (activity.start_latlng) {
+          let lat = activity.start_latlng[0];
+          let lon = activity.start_latlng[1];
+          marker.setLatLng([lat, lon]);
+          map.setView([lat, lon], 13);
+        }
+      } catch (err) {
+        console.error("Error fetching Strava data:", err);
+      }
+    }
+
+    setInterval(fetchLatestActivity, 15000);
+    fetchLatestActivity();
+  </script>
+</body>
+</html>
