@@ -1,5 +1,15 @@
-const STRAVA_ACCESS_TOKEN = "bc53fc2ded88206cacfd3a9d7cc39992be0e20af";
-const DISTANCE_GOAL = 30.0; // miles
+async function getAccessToken() {
+  const res = await fetch("token.json");
+  const data = await res.json();
+  return data.access_token;
+}
+
+async function fetchLatestActivity() {
+  const token = await getAccessToken();
+  const res = await fetch("https://www.strava.com/api/v3/athlete/activities?per_page=1", {
+    headers: { "Authorization": "Bearer " + token }
+  });
+  const DISTANCE_GOAL = 30.0; // miles
 
 let map = L.map('map').setView([0,0], 13);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -37,3 +47,6 @@ async function fetchLatestActivity() {
 
 setInterval(fetchLatestActivity, 15000);
 fetchLatestActivity();
+
+}
+
