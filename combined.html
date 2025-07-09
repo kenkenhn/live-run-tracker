@@ -2,12 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My Run Tracker</title>
+  <title>My Live Run Tracker</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
-    h1 { text-align: center; }
-    .stats { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);}
-    .stats div { margin: 10px 0; font-size: 1.2em; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f5f5f5;
+    }
+    h1 {
+      text-align: center;
+    }
+    .stats {
+      max-width: 400px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .stats div {
+      margin: 10px 0;
+      font-size: 1.2em;
+    }
     .beacon-button-container {
       text-align: center;
       margin: 30px auto 0;
@@ -31,26 +47,25 @@
 <body>
   <h1>My Live Run Tracker</h1>
   <div class="stats">
-    <div>Distance: <span id="distance"></span></div>
-    <div>Current Pace: <span id="pace"></span></div>
-    <div>ETA to <span id="goal-miles-label"></span> mi: <span id="eta"</span></div>
+    <div>Distance: <span id="distance">0.00 mi</span></div>
+    <div>Current Pace: <span id="pace">0:00 min/mi</span></div>
+    <div>ETA to <span id="goal-miles-label">5</span> mi: <span id="eta">--:--</span></div>
   </div>
 
   <div class="beacon-button-container">
     <a
-      href="https://strava.com/beacon/R08RWvF5F2U"
+      href="https://strava.com/beacon/YOUR_LIVE_BEACON_URL"
       target="_blank"
       rel="noopener noreferrer"
       class="beacon-button"
-      >Open Strava Beacon Live Map</a
-    >
+    >Open Strava Beacon Live Map</a>
   </div>
 
   <script>
-    // <-- Change this number to update your distance goal (in miles) -->
+    // ✅ Change your distance goal here
     const TOTAL_GOAL_MILES = 3;
 
-    // Update the goal label in the UI automatically
+    // Update the displayed goal
     document.getElementById('goal-miles-label').textContent = TOTAL_GOAL_MILES;
 
     function formatPace(minutesPerMile) {
@@ -66,39 +81,51 @@
     }
 
     async function updateStats() {
-      // Example fetch from local token.json (replace with actual Strava API fetch on live)
-      const response = await fetch("token.json");
-      const data = await response.json();
+      try {
+        const response = await fetch("token.json?cache=" + new Date().getTime());
+        const data = await response.json();
 
-      // Simulated values (replace with your actual data)
-      let distanceMiles = data.distanceMiles || 2.5;
-      let elapsedMinutes = data.elapsedMinutes || 21;
+        // ✅ Replace these with actual fields from your Strava API JSON
+        let distanceMiles = data.distanceMiles || 0;
+        let elapsedMinutes = data.elapsedMinutes || 0;
 
-      // Calculations
-      let currentPace = elapsedMinutes / distanceMiles;
-      let remainingDistance = TOTAL_GOAL_MILES - distanceMiles;
-      let etaMinutes = currentPace * remainingDistance;
-
-      // Update UI
-      document.getElementById("distance").textContent = `${distanceMiles.toFixed(2)} mi`;
-      document.getElementById("pace").textContent = formatPace(currentPace);
-
-      // Show ETA in MM:SS format, or "--:--" if no remaining distance
-      if (remainingDistance > 0) {
-        let etaMin = Math.floor(etaMinutes);
-        let etaSec = Math.round((etaMinutes % 1) * 60);
-        if (etaSec === 60) {
-          etaMin += 1;
-          etaSec = 0;
+        if (distanceMiles === 0 || elapsedMinutes === 0) {
+          // Not running yet
+          document.getElementById("distance").textContent = `0.00 mi`;
+          document.getElementById("pace").textContent = "--:-- min/mi";
+          document.getElementById("eta").textContent = "--:--";
+          return;
         }
-        document.getElementById("eta").textContent = `${etaMin}:${etaSec.toString().padStart(2,'0')}`;
-      } else {
+
+        let currentPace = elapsedMinutes / distanceMiles;
+        let remainingDistance = Math.max(0, TOTAL_GOAL_MILES - distanceMiles);
+        let etaMinutes = currentPace * remainingDistance;
+
+        document.getElementById("distance").textContent = `${distanceMiles.toFixed(2)} mi`;
+        document.getElementById("pace").textContent = formatPace(currentPace);
+
+        if (remainingDistance > 0) {
+          let etaMin = Math.floor(etaMinutes);
+          let etaSec = Math.round((etaMinutes % 1) * 60);
+          if (etaSec === 60) {
+            etaMin += 1;
+            etaSec = 0;
+          }
+          document.getElementById("eta").textContent = `${etaMin}:${etaSec.toString().padStart(2, "0")}`;
+        } else {
+          document.getElementById("eta").textContent = "0:00";
+        }
+
+      } catch (e) {
+        console.error("Could not fetch data:", e);
+        document.getElementById("distance").textContent = "ERR";
+        document.getElementById("pace").textContent = "--:-- min/mi";
         document.getElementById("eta").textContent = "--:--";
       }
     }
 
     updateStats();
-    setInterval(updateStats, 30000); // refresh every 30 seconds
+    setInterval(updateStats, 30000); // refresh every 30 sec
   </script>
 </body>
 </html>
