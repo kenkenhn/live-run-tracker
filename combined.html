@@ -32,14 +32,14 @@
       <div id="stats">
         <p><strong>Distance:</strong> <span id="distance"></span></p>
         <p><strong>Current pace:</strong> <span id="pace"></span></p>
-        <p><strong>ETA to 30 mi:</strong> <span id="eta"></span></p>
+        <p><strong>ETA to 5 mi:</strong> <span id="eta"></span></p>
       </div>
       <div id="map"></div>
     </div>
   </div>
   <script>
     const STRAVA_ACCESS_TOKEN = "bc53fc2ded88206cacfd3a9d7cc39992be0e20af";
-    const DISTANCE_GOAL = 30.0;
+    const DISTANCE_GOAL = 5.0;
 
     let map = L.map('map').setView([0,0], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
