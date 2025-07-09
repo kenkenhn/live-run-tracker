@@ -8,6 +8,24 @@
     h1 { text-align: center; }
     .stats { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);}
     .stats div { margin: 10px 0; font-size: 1.2em; }
+    .beacon-button-container {
+      text-align: center;
+      margin: 30px auto 0;
+      max-width: 400px;
+    }
+    .beacon-button {
+      display: inline-block;
+      background: #fc4c02;
+      color: white;
+      padding: 14px 24px;
+      font-size: 1.2em;
+      border-radius: 6px;
+      text-decoration: none;
+      user-select: none;
+    }
+    .beacon-button:hover {
+      background: #d74200;
+    }
   </style>
 </head>
 <body>
@@ -16,6 +34,16 @@
     <div>Distance: <span id="distance">0.00 mi</span></div>
     <div>Current Pace: <span id="pace">0:00 min/mi</span></div>
     <div>ETA to 5 mi: <span id="eta">--:--</span></div>
+  </div>
+
+  <div class="beacon-button-container">
+    <a
+      href="https://strava.com/beacon/R08RWvF5F2U"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="beacon-button"
+      >Open Strava Beacon Live Map</a
+    >
   </div>
 
   <script>
@@ -30,7 +58,7 @@
         sec = 0;
       }
 
-      return `${min}:${sec.toString().padStart(2, '0')} min/mi`;
+      return `${min}:${sec.toString().padStart(2, "0")} min/mi`;
     }
 
     async function updateStats() {
@@ -39,7 +67,7 @@
       const data = await response.json();
 
       // Simulated values (replace with live data parsing)
-      let distanceMiles = data.distanceMiles || 2.5;  // replace with actual from your Strava JSON
+      let distanceMiles = data.distanceMiles || 2.5; // replace with actual from your Strava JSON
       let elapsedMinutes = data.elapsedMinutes || 21; // replace with actual
 
       // Calculations
@@ -50,7 +78,11 @@
       // Update display
       document.getElementById("distance").textContent = `${distanceMiles.toFixed(2)} mi`;
       document.getElementById("pace").textContent = formatPace(currentPace);
-      document.getElementById("eta").textContent = `${Math.floor(etaMinutes)}:${Math.round((etaMinutes % 1) * 60).toString().padStart(2,'0')}`;
+      document.getElementById("eta").textContent = `${Math.floor(etaMinutes)}:${Math.round(
+        (etaMinutes % 1) * 60
+      )
+        .toString()
+        .padStart(2, "0")}`;
     }
 
     updateStats();
