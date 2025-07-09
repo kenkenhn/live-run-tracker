@@ -33,12 +33,12 @@
   <div class="stats">
     <div>Distance: <span id="distance">0.00 mi</span></div>
     <div>Current Pace: <span id="pace">0:00 min/mi</span></div>
-    <div>ETA to 5 mi: <span id="eta">--:--</span></div>
+    <div>ETA to <span id="goal-miles-label">5</span> mi: <span id="eta">--:--</span></div>
   </div>
 
   <div class="beacon-button-container">
     <a
-      href="https://strava.com/beacon/R08RWvF5F2U"
+      href="https://strava.com/beacon/YOUR_LIVE_BEACON_URL"
       target="_blank"
       rel="noopener noreferrer"
       class="beacon-button"
@@ -47,7 +47,11 @@
   </div>
 
   <script>
+    // <-- Change this number to update your distance goal (in miles) -->
     const TOTAL_GOAL_MILES = 5;
+
+    // Update the goal label in the UI automatically
+    document.getElementById('goal-miles-label').textContent = TOTAL_GOAL_MILES;
 
     function formatPace(minutesPerMile) {
       let min = Math.floor(minutesPerMile);
@@ -62,31 +66,39 @@
     }
 
     async function updateStats() {
-      // Example fetch from local token.json (for live site replace with actual Strava API fetch)
+      // Example fetch from local token.json (replace with actual Strava API fetch on live)
       const response = await fetch("token.json");
       const data = await response.json();
 
-      // Simulated values (replace with live data parsing)
-      let distanceMiles = data.distanceMiles || 2.5; // replace with actual from your Strava JSON
-      let elapsedMinutes = data.elapsedMinutes || 21; // replace with actual
+      // Simulated values (replace with your actual data)
+      let distanceMiles = data.distanceMiles || 2.5;
+      let elapsedMinutes = data.elapsedMinutes || 21;
 
       // Calculations
       let currentPace = elapsedMinutes / distanceMiles;
       let remainingDistance = TOTAL_GOAL_MILES - distanceMiles;
       let etaMinutes = currentPace * remainingDistance;
 
-      // Update display
+      // Update UI
       document.getElementById("distance").textContent = `${distanceMiles.toFixed(2)} mi`;
       document.getElementById("pace").textContent = formatPace(currentPace);
-      document.getElementById("eta").textContent = `${Math.floor(etaMinutes)}:${Math.round(
-        (etaMinutes % 1) * 60
-      )
-        .toString()
-        .padStart(2, "0")}`;
+
+      // Show ETA in MM:SS format, or "--:--" if no remaining distance
+      if (remainingDistance > 0) {
+        let etaMin = Math.floor(etaMinutes);
+        let etaSec = Math.round((etaMinutes % 1) * 60);
+        if (etaSec === 60) {
+          etaMin += 1;
+          etaSec = 0;
+        }
+        document.getElementById("eta").textContent = `${etaMin}:${etaSec.toString().padStart(2,'0')}`;
+      } else {
+        document.getElementById("eta").textContent = "--:--";
+      }
     }
 
     updateStats();
-    setInterval(updateStats, 30000); // refresh every 30 sec
+    setInterval(updateStats, 30000); // refresh every 30 seconds
   </script>
 </body>
 </html>
