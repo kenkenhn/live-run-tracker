@@ -40,3 +40,13 @@ async function refreshAccessToken() {
 }
 
 refreshAccessToken();
+
+import { exec } from "child_process";
+
+exec("git add token.json && git commit -m \"Auto update token\" && git push", (err, stdout, stderr) => {
+  if (err) {
+    console.error(`Git error: ${stderr}`);
+  } else {
+    console.log(`✅ Git pushed:\n${stdout}`);
+  }
+});
