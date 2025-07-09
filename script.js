@@ -9,7 +9,7 @@ async function fetchLatestActivity() {
   const res = await fetch("https://www.strava.com/api/v3/athlete/activities?per_page=1", {
     headers: { "Authorization": "Bearer " + token }
   });
-  const DISTANCE_GOAL = 30.0; // miles
+  const DISTANCE_GOAL = 5.0; // miles
 
 let map = L.map('map').setView([0,0], 13);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
