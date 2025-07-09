@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Strava Token Refresher</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 2em auto; }
+    label, input { display: block; margin: 0.5em 0; }
+    button { padding: 0.5em 1em; }
+    pre { background: #eee; padding: 1em; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>Strava Token Refresher</h1>
+  
+  <label>Client ID:
+    <input type="text" id="client_id">
+  </label>
+  <label>Client Secret:
+    <input type="text" id="client_secret">
+  </label>
+  <label>Refresh Token:
+    <input type="text" id="refresh_token">
+  </label>
+  <button onclick="refreshToken()">Get New Access Token</button>
+
+  <h2>Result</h2>
+  <pre id="output">Fill out above and click the button.</pre>
+
+  <script>
+    async function refreshToken() {
+      const client_id = document.getElementById("client_id").value;
+      const client_secret = document.getElementById("client_secret").value;
+      const refresh_token = document.getElementById("refresh_token").value;
+      
+      const formData = new URLSearchParams();
+      formData.append("client_id", client_id);
+      formData.append("client_secret", client_secret);
+      formData.append("grant_type", "refresh_token");
+      formData.append("refresh_token", refresh_token);
+      
+      const res = await fetch("https://www.strava.com/oauth/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData.toString()
+      });
+      const data = await res.json();
+      
+      document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
