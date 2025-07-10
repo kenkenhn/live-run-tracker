@@ -86,8 +86,9 @@
         const data = await response.json();
 
         // ✅ Replace these with actual fields from your Strava API JSON
-        let distanceMiles = data.distanceMiles || 0;
-        let elapsedMinutes = data.elapsedMinutes || 0;
+        let distanceMiles = (data.distance || 0) / 1609.34; // meters -> miles
+        let elapsedMinutes = (data.elapsed_time || 0) / 60; // seconds -> minutes
+
 
         if (distanceMiles === 0 || elapsedMinutes === 0) {
           // Not running yet
