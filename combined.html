@@ -4,80 +4,46 @@
   <meta charset="UTF-8" />
   <title>My Live Run Tracker</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      background: #f5f5f5;
-    }
-    h1 {
-      text-align: center;
-    }
-    .stats {
-      max-width: 400px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    .stats div {
-      margin: 10px 0;
-      font-size: 1.2em;
-    }
-    .beacon-button-container {
-      text-align: center;
-      margin: 30px auto 0;
-      max-width: 400px;
-    }
-    .beacon-button {
-      display: inline-block;
-      background: #fc4c02;
-      color: white;
-      padding: 14px 24px;
-      font-size: 1.2em;
-      border-radius: 6px;
-      text-decoration: none;
-      user-select: none;
-    }
-    .beacon-button:hover {
-      background: #d74200;
-    }
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+    h1 { text-align: center; }
+    .stats { max-width: 400px; margin: auto; background: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);}
+    .stats div { margin: 10px 0; font-size: 1.2em; }
+    .beacon-container { text-align: center; margin-top: 20px; }
+    .beacon-container a button { padding: 10px 20px; font-size: 1em; border: none; background: #f45050; color: white; border-radius: 5px; cursor: pointer;}
+    .beacon-container a button:hover { background: #d03d3d; }
   </style>
 </head>
 <body>
   <h1>My Live Run Tracker</h1>
   <div class="stats">
     <div>Distance: <span id="distance">0.00 mi</span></div>
-    <div>Current Pace: <span id="pace">0:00 min/mi</span></div>
-    <div>ETA to <span id="goal-miles-label">5</span> mi: <span id="eta">--:--</span></div>
+    <div>Current Pace: <span id="pace">--:-- min/mi</span></div>
+    <div id="eta-label">ETA to 5 mi: <span id="eta">--:--</span></div>
   </div>
 
-  <div class="beacon-button-container">
-    <a
-      href="https://strava.com/beacon/O8n4qUZ3LrY"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="beacon-button"
-    >Open Strava Beacon Live Map</a>
+  <div class="beacon-container">
+    <a href="https://strava.app.link/YOUR_LATEST_BEACON_LINK_HERE" target="_blank">
+      <button>Open Strava Beacon Live Map</button>
+    </a>
   </div>
 
   <script>
-    // ✅ Change your distance goal here
-    const TOTAL_GOAL_MILES = 4;
-
-    // Update the displayed goal
-    document.getElementById('goal-miles-label').textContent = TOTAL_GOAL_MILES;
+    const TOTAL_GOAL_MILES = 5;  // 🔥 adjust this anytime, everything auto updates
 
     function formatPace(minutesPerMile) {
       let min = Math.floor(minutesPerMile);
       let sec = Math.round((minutesPerMile - min) * 60);
+      if (sec === 60) { min += 1; sec = 0; }
+      return `${min}:${sec.toString().padStart(2, '0')} min/mi`;
+    }
 
-      if (sec === 60) {
-        min += 1;
-        sec = 0;
-      }
-
-      return `${min}:${sec.toString().padStart(2, "0")} min/mi`;
+    function formatTimeAMPM(date) {
+      let hours = date.getHours();
+      let minutes = date.getMinutes();
+      let ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // 0 becomes 12
+      return `${hours}:${minutes.toString().padStart(2,'0')} ${ampm}`;
     }
 
     async function updateStats() {
@@ -85,37 +51,26 @@
         const response = await fetch("token.json?cache=" + new Date().getTime());
         const data = await response.json();
 
-        // ✅ Replace these with actual fields from your Strava API JSON
-        let distanceMiles = (data.distance || 0) / 1609.34; // meters -> miles
-        let elapsedMinutes = (data.elapsed_time || 0) / 60; // seconds -> minutes
+        let distanceMiles = (data.distance || 0) / 1609.34;
+        let elapsedMinutes = (data.elapsed_time || 0) / 60;
 
-
-        if (distanceMiles === 0 || elapsedMinutes === 0) {
-          // Not running yet
-          document.getElementById("distance").textContent = `0.00 mi`;
-          document.getElementById("pace").textContent = "--:-- min/mi";
-          document.getElementById("eta").textContent = "--:--";
-          return;
-        }
-
-        let currentPace = elapsedMinutes / distanceMiles;
-        let remainingDistance = Math.max(0, TOTAL_GOAL_MILES - distanceMiles);
+        let currentPace = (distanceMiles > 0) ? (elapsedMinutes / distanceMiles) : 0;
+        let remainingDistance = TOTAL_GOAL_MILES - distanceMiles;
         let etaMinutes = currentPace * remainingDistance;
 
         document.getElementById("distance").textContent = `${distanceMiles.toFixed(2)} mi`;
-        document.getElementById("pace").textContent = formatPace(currentPace);
+        document.getElementById("pace").textContent = (distanceMiles > 0) ? formatPace(currentPace) : "--:-- min/mi";
 
-        if (remainingDistance > 0) {
-          let etaMin = Math.floor(etaMinutes);
-          let etaSec = Math.round((etaMinutes % 1) * 60);
-          if (etaSec === 60) {
-            etaMin += 1;
-            etaSec = 0;
-          }
-          document.getElementById("eta").textContent = `${etaMin}:${etaSec.toString().padStart(2, "0")}`;
+        if (distanceMiles > 0 && etaMinutes > 0) {
+          let etaDate = new Date();
+          etaDate.setMinutes(etaDate.getMinutes() + Math.round(etaMinutes));
+          document.getElementById("eta").textContent = formatTimeAMPM(etaDate);
         } else {
-          document.getElementById("eta").textContent = "0:00";
+          document.getElementById("eta").textContent = "--:--";
         }
+
+        // 🔥 dynamically update the label
+        document.getElementById("eta-label").innerHTML = `ETA to ${TOTAL_GOAL_MILES} mi: <span id="eta">${document.getElementById("eta").textContent}</span>`;
 
       } catch (e) {
         console.error("Could not fetch data:", e);
