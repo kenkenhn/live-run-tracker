@@ -26,7 +26,7 @@ async function refreshAccessToken() {
       console.log("✅ Got new access token:", data.access_token);
 
       // Write it to token.json
-      fs.writeFileSync(TOKEN_FILE, JSON.stringify({
+      fs.writeFileSync("../token.json", JSON.stringify({
         access_token: data.access_token,
         expires_at: data.expires_at
       }, null, 2));
